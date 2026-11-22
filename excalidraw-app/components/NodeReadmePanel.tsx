@@ -87,11 +87,7 @@ export const NodeReadmePanel = ({
           <>
             <header className="node-readme-panel__header">
               <div className="node-readme-panel__title">
-                <span className="node-readme-panel__eyebrow">
-                  Element README
-                </span>
                 <strong title={label}>{label}</strong>
-                <code title={element.id}>{element.type}</code>
               </div>
               <button
                 type="button"
