@@ -7,11 +7,19 @@ Excalidraw currently has two relevant sharing paths ([app implementation](https:
 - A shareable link exports a scene snapshot to the JSON backend. The link opens that saved scene for viewing or copying; it is not the same as a shared document with durable edits.
 - A collaboration link contains a room ID and a decryption key in the URL fragment. The app connects to the Excalidraw Room Socket.IO server for live broadcasts and stores encrypted scene snapshots and image files in Firebase. The fragment key is used client-side, so the room service can relay ciphertext without reading the drawing.
 
-The collaboration link remains usable after everyone leaves because the scene is persisted, but the interaction is organized around starting/joining a live collaboration room. There is no account-backed document library, named persistent document, membership model, or asynchronous edit history in this flow.
+The important distinction is that a collaboration link is already durable: the initiating browser does not host the room. The app creates a room ID and key, opens a Socket.IO connection for active editors, and writes encrypted scene snapshots to Firebase. Reopening that same collaboration link later loads the saved scene. The initiating browser can close; the hosted room service and database remain available. Starting collaboration again without the old link creates a new room, and the app does not provide a document library or membership management. The [current room code](https://github.com/excalidraw/excalidraw/blob/master/excalidraw-app/collab/Collab.tsx) and [scene persistence code](https://github.com/excalidraw/excalidraw/blob/master/excalidraw-app/data/firebase.ts) show this split.
+
+The JSON shareable link is a separate, read-only snapshot flow. For Google Docs-style editing, collaborators need the collaboration link, not the readonly snapshot link.
+
+## Do we need a Raspberry Pi or a new backend?
+
+No. A Raspberry Pi is not needed to keep an editor session alive. The editor's WebSocket connection exists only while somebody has the drawing open; Firebase keeps the latest encrypted snapshot when everyone is gone. The server components are already hosted by Excalidraw. The simplest Google Docs-style product is therefore to make the existing collaboration URL a stable document link and make reopening it the normal edit flow, rather than starting a fresh room each time.
+
+SpacetimeDB could replace or consolidate the room-state backend, but it is not required to get asynchronous edits. Its managed Maincloud service handles hosting and can suspend idle databases on its free tier, preserving data and resuming on the next request; paid tiers can keep databases running. A self-hosted Raspberry Pi would be an option for local control, but then power, internet reachability, backups, patching, and availability become your responsibility. [Maincloud deployment and lifecycle](https://spacetimedb.com/docs/how-to/deploy/maincloud/)
 
 ## Can SpacetimeDB support the desired flow?
 
-Yes. A SpacetimeDB document row can remain in durable storage when no clients are connected. A client can reconnect later, subscribe to that document's state, read the current scene, and submit edits through reducers. Reducers are transactional, and subscriptions deliver incremental changes into a local client cache ([persistence and subscriptions](https://spacetimedb.com/docs/intro/faq/), [access permissions](https://spacetimedb.com/docs/tables/access-permissions/)). This removes the need for an editor to host a live session.
+Yes. A SpacetimeDB document row can remain in durable storage when no clients are connected. A client can reconnect later, subscribe to that document's state, read the current scene, and submit edits through reducers. Reducers are transactional, and subscriptions deliver incremental changes into a local client cache ([persistence and subscriptions](https://spacetimedb.com/docs/intro/faq/), [access permissions](https://spacetimedb.com/docs/tables/access-permissions/)). This removes the need for an editor to host a live session, just as Excalidraw's existing hosted persistence already does.
 
 SpacetimeDB provides transport, durable state, subscriptions, and server-side validation; it does not by itself solve Excalidraw's concurrent scene-merge rules. That merge policy must be implemented explicitly.
 
@@ -51,4 +59,6 @@ SpacetimeDB tables are private by default; clients read exposed data through pub
 
 ## Recommendation
 
-SpacetimeDB is a plausible backend for durable asynchronous edits. First prove the document/revision adapter with encrypted snapshots and reconnects. Keep the current live collaboration behavior during that prototype; do not assume the database alone replaces Excalidraw's scene reconciliation or presence channel.
+First try the Google Docs experience on the current Excalidraw backend: create a collaboration document once, retain a stable edit link, and confirm that a second browser can reopen it after the first browser is fully closed. Add a document list or account-backed ownership only if users need to recover documents when the link is lost. This may satisfy the core request without a backend migration.
+
+Consider a SpacetimeDB prototype only if we want its unified state/subscription model or need to own the backend. Keep Excalidraw's scene reconciliation and ephemeral cursor/presence behavior explicit in that design. The database's durable transactions alone do not resolve simultaneous edits.
