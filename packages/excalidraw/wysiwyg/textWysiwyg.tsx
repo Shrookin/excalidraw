@@ -634,9 +634,9 @@ export const textWysiwyg = ({
     button.className = "excalidraw-wysiwyg-toolbar__button";
     return button;
   };
-  const boldButton = makeToolbarButton("B", "Bold");
-  const italicButton = makeToolbarButton("I", "Italic");
-  boldButton.style.fontWeight = "bold";
+  const boldButton = makeToolbarButton("Bold", "Bold");
+  const italicButton = makeToolbarButton("Italic", "Italic");
+  boldButton.style.fontWeight = "700";
   italicButton.style.fontStyle = "italic";
 
   const fontSizeInput = ownerDocument.createElement("input");
@@ -702,7 +702,11 @@ export const textWysiwyg = ({
       colorInput.value = color;
     }
     const bounds = editable.getBoundingClientRect();
-    formattingToolbar.style.left = `${Math.max(8, bounds.left)}px`;
+    const toolbarWidth = formattingToolbar.getBoundingClientRect().width;
+    formattingToolbar.style.left = `${Math.max(
+      8,
+      Math.min(bounds.left, ownerWindow.innerWidth - toolbarWidth - 8),
+    )}px`;
     formattingToolbar.style.top = `${Math.max(8, bounds.top - 44)}px`;
   };
 

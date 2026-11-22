@@ -29,9 +29,11 @@
 }
 
 .excalidraw-wysiwyg-toolbar__button {
-  min-width: 2rem;
+  min-width: 3.4rem;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0 0.5rem;
 }
 
 .excalidraw-wysiwyg-toolbar__button[aria-pressed="true"] {
