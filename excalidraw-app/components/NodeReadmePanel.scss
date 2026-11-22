@@ -1,23 +1,138 @@
-.node-readme-trigger {
+.node-readme-control {
+  position: relative;
+  z-index: 1000;
   margin-right: 0.5rem;
 }
 
-.node-readme-panel {
-  position: fixed;
-  z-index: 1000;
-  top: 4.5rem;
-  right: 1rem;
-  display: flex;
+.node-readme-control__filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.node-readme-control__goo {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
   width: min(24rem, calc(100vw - 2rem));
   height: min(34rem, calc(100vh - 6rem));
+  pointer-events: none;
+  filter: url("#node-readme-goo");
+}
+
+.node-readme-control__goo::before,
+.node-readme-control__blob {
+  position: absolute;
+  display: block;
+  border-radius: 1rem;
+  background: var(--island-bg-color);
+  content: "";
+}
+
+.node-readme-control__goo::before {
+  inset: 3rem 0 0;
+  transform: scale(0.14);
+  transform-origin: top right;
+  transition: transform 560ms cubic-bezier(0.22, 1.25, 0.45, 1);
+}
+
+.node-readme-control__blob {
+  top: 0;
+  right: 0;
+  width: 7rem;
+  height: 2.5rem;
+  transition: width 420ms cubic-bezier(0.22, 1.25, 0.45, 1),
+    height 420ms cubic-bezier(0.22, 1.25, 0.45, 1);
+}
+
+.node-readme-control[data-open="true"] .node-readme-control__goo::before {
+  transform: scale(1);
+}
+
+.node-readme-control[data-open="true"] .node-readme-control__blob {
+  width: 7rem;
+  height: 2.5rem;
+}
+
+.node-readme-trigger {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  min-width: 7rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 0.8rem;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast, #fff);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+  padding: 0 0.8rem;
+  box-shadow: 0 2px 8px #0003;
+  transition: background-color 160ms ease, box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.node-readme-trigger:hover {
+  box-shadow: 0 4px 14px #0004;
+  transform: translateY(-1px);
+}
+
+.node-readme-trigger:focus-visible,
+.node-readme-panel button:focus-visible,
+.node-readme-panel textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.node-readme-trigger svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.node-readme-panel {
+  position: absolute;
+  z-index: 2;
+  top: 3rem;
+  right: 0;
+  display: flex;
+  width: min(24rem, calc(100vw - 2rem));
+  height: min(34rem, calc(100vh - 9rem));
   flex-direction: column;
   overflow: hidden;
+  transform: scale(0.14);
+  transform-origin: top right;
   border: 1px solid var(--default-border-color);
   border-radius: 1rem;
   background: var(--island-bg-color);
   color: var(--text-primary-color);
   box-shadow: 0 12px 40px #0003;
+  opacity: 0;
+  pointer-events: none;
   text-align: left;
+  visibility: hidden;
+  transition: transform 560ms cubic-bezier(0.22, 1.25, 0.45, 1),
+    opacity 180ms ease, visibility 0s linear 560ms;
+}
+
+.node-readme-control[data-open="true"] .node-readme-panel {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  transition: transform 560ms cubic-bezier(0.22, 1.25, 0.45, 1),
+    opacity 220ms ease 90ms, visibility 0s;
 }
 
 .node-readme-panel__header,
@@ -187,46 +302,65 @@
   margin-top: 0;
   font-size: 1.25rem;
 }
+
 .node-readme-markdown h2 {
   font-size: 1.05rem;
 }
+
 .node-readme-markdown h3 {
   font-size: 0.925rem;
 }
+
 .node-readme-markdown p,
 .node-readme-markdown ul,
 .node-readme-markdown ol {
   margin: 0.65rem 0;
 }
+
 .node-readme-markdown ul,
 .node-readme-markdown ol {
   padding-left: 1.35rem;
 }
+
 .node-readme-markdown ul {
   list-style: disc;
 }
+
 .node-readme-markdown ol {
   list-style: decimal;
 }
+
 .node-readme-markdown a {
   color: var(--color-primary);
   text-decoration: underline;
 }
+
 .node-readme-markdown code {
   border-radius: 0.25rem;
   background: var(--button-gray-1);
   padding: 0.1rem 0.3rem;
   font-family: var(--font-mono);
 }
+
 .node-readme-markdown pre {
   overflow: auto;
   border: 1px solid var(--default-border-color);
   border-radius: 0.5rem;
   padding: 0.75rem;
 }
+
 .node-readme-markdown blockquote {
   border-left: 2px solid var(--default-border-color);
   margin: 0.75rem 0;
   padding-left: 0.75rem;
   color: var(--text-muted-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node-readme-control__goo::before,
+  .node-readme-control__blob,
+  .node-readme-panel,
+  .node-readme-trigger {
+    transition-duration: 0.01ms;
+  }
 }

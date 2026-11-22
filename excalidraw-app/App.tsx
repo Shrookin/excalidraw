@@ -382,6 +382,7 @@ const ExcalidrawWrapper = () => {
     null,
   );
   const [readmeTargetId, setReadmeTargetId] = useState<string | null>(null);
+  const [readmePanelOpen, setReadmePanelOpen] = useState(false);
   const isCollabDisabled = isRunningInIframe();
 
   const { editorTheme, appTheme, setAppTheme } = useHandleAppTheme();
@@ -738,8 +739,10 @@ const ExcalidrawWrapper = () => {
     setSelectedElementId((current) =>
       current === nextSelectedElementId ? current : nextSelectedElementId,
     );
-    if (readmeTargetId && readmeTargetId !== nextSelectedElementId) {
-      setReadmeTargetId(null);
+    if (readmePanelOpen && nextSelectedElementId) {
+      setReadmeTargetId((current) =>
+        current === nextSelectedElementId ? current : nextSelectedElementId,
+      );
     }
 
     if (collabAPI?.isCollaborating()) {
@@ -873,41 +876,44 @@ const ExcalidrawWrapper = () => {
       "Element";
 
     return (
-      <>
-        {selectedElement && (
-          <button
-            type="button"
-            className="excalidraw-button node-readme-trigger"
-            aria-label="Open element README"
-            title="Open element README"
-            onClick={() => setReadmeTargetId(selectedElement.id)}
-          >
-            README
-          </button>
-        )}
-        {readmeElement && excalidrawAPI && (
-          <NodeReadmePanel
-            element={readmeElement}
-            label={readmeLabel}
-            onClose={() => setReadmeTargetId(null)}
-            onChange={(markdown) => {
-              const elements = excalidrawAPI
-                .getSceneElementsIncludingDeleted()
-                .map((element) =>
-                  element.id === readmeElement.id
-                    ? newElementWith(element, {
-                        customData: {
-                          ...element.customData,
-                          nodeReadme: markdown,
-                        },
-                      })
-                    : element,
-                );
-              excalidrawAPI.updateScene({ elements });
-            }}
-          />
-        )}
-      </>
+      <NodeReadmePanel
+        selectedElement={selectedElement ?? null}
+        element={readmeElement ?? null}
+        label={readmeLabel}
+        open={readmePanelOpen}
+        onToggle={(elementId) => {
+          if (readmePanelOpen && readmeTargetId === elementId) {
+            setReadmePanelOpen(false);
+            return;
+          }
+          setReadmeTargetId(elementId);
+          setReadmePanelOpen(true);
+        }}
+        onClose={() => setReadmePanelOpen(false)}
+        onClosed={() => {
+          if (!readmePanelOpen) {
+            setReadmeTargetId(null);
+          }
+        }}
+        onChange={(markdown) => {
+          if (!readmeElement || !excalidrawAPI) {
+            return;
+          }
+          const elements = excalidrawAPI
+            .getSceneElementsIncludingDeleted()
+            .map((element) =>
+              element.id === readmeElement.id
+                ? newElementWith(element, {
+                    customData: {
+                      ...element.customData,
+                      nodeReadme: markdown,
+                    },
+                  })
+                : element,
+            );
+          excalidrawAPI.updateScene({ elements });
+        }}
+      />
     );
   };
 
