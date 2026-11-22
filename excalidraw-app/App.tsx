@@ -1115,7 +1115,6 @@ const ExcalidrawWrapper = () => {
 
           return (
             <div className="excalidraw-ui-top-right">
-              {renderReadmeControls()}
               {excalidrawAPI?.getEditorInterface().formFactor === "desktop" && (
                 <ExcalidrawPlusPromoBanner
                   isSignedIn={isExcalidrawPlusSignedUser}
@@ -1130,6 +1129,7 @@ const ExcalidrawWrapper = () => {
                 }
                 editorInterface={editorInterface}
               />
+              {renderReadmeControls()}
             </div>
           );
         }}

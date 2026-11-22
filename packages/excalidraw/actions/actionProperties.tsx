@@ -1023,6 +1023,37 @@ export const actionChangeFontSize = register<ExcalidrawTextElement["fontSize"]>(
     },
     PanelComponent: ({ elements, appState, updateData, app, data }) => {
       const { isCompact } = getStylesPanelInfo(app);
+      const currentFontSize = getFormValue(
+        elements,
+        app,
+        (element) => {
+          const elementsMap = app.scene.getNonDeletedElementsMap();
+          if (isTextElement(element)) {
+            return getBaseFontSize(element, elementsMap);
+          }
+          const boundTextElement = getBoundTextElement(element, elementsMap);
+          return boundTextElement
+            ? getBaseFontSize(boundTextElement, elementsMap)
+            : null;
+        },
+        (element) =>
+          isTextElement(element) ||
+          getBoundTextElement(element, app.scene.getNonDeletedElementsMap()) !==
+            null,
+        (hasSelection) =>
+          hasSelection
+            ? null
+            : appState.currentItemFontSize || DEFAULT_FONT_SIZE,
+      );
+      const [fontSizeInputValue, setFontSizeInputValue] = useState(
+        typeof currentFontSize === "number" ? String(currentFontSize) : "",
+      );
+
+      useEffect(() => {
+        setFontSizeInputValue(
+          typeof currentFontSize === "number" ? String(currentFontSize) : "",
+        );
+      }, [currentFontSize]);
 
       return (
         <fieldset>
@@ -1056,34 +1087,7 @@ export const actionChangeFontSize = register<ExcalidrawTextElement["fontSize"]>(
                   testId: "fontSize-veryLarge",
                 },
               ]}
-              value={getFormValue(
-                elements,
-                app,
-                (element) => {
-                  const elementsMap = app.scene.getNonDeletedElementsMap();
-                  if (isTextElement(element)) {
-                    return getBaseFontSize(element, elementsMap);
-                  }
-                  const boundTextElement = getBoundTextElement(
-                    element,
-                    elementsMap,
-                  );
-                  if (boundTextElement) {
-                    return getBaseFontSize(boundTextElement, elementsMap);
-                  }
-                  return null;
-                },
-                (element) =>
-                  isTextElement(element) ||
-                  getBoundTextElement(
-                    element,
-                    app.scene.getNonDeletedElementsMap(),
-                  ) !== null,
-                (hasSelection) =>
-                  hasSelection
-                    ? null
-                    : appState.currentItemFontSize || DEFAULT_FONT_SIZE,
-              )}
+              value={currentFontSize}
               onChange={(value) => {
                 withCaretPositionPreservation(
                   () => updateData(value),
@@ -1094,6 +1098,42 @@ export const actionChangeFontSize = register<ExcalidrawTextElement["fontSize"]>(
               }}
             />
           </div>
+          <label className="font-size-number-input">
+            <span>Custom size</span>
+            <input
+              aria-label="Custom font size"
+              type="number"
+              min={4}
+              max={512}
+              step={1}
+              value={fontSizeInputValue}
+              onChange={(event) =>
+                setFontSizeInputValue(event.currentTarget.value)
+              }
+              onBlur={(event) => {
+                const nextValue = Number(event.currentTarget.value);
+                if (
+                  event.currentTarget.value &&
+                  Number.isFinite(nextValue) &&
+                  nextValue >= 4 &&
+                  nextValue <= 512
+                ) {
+                  withCaretPositionPreservation(
+                    () => updateData(nextValue),
+                    isCompact,
+                    !!appState.editingTextElement,
+                    data?.onPreventClose,
+                  );
+                } else {
+                  setFontSizeInputValue(
+                    typeof currentFontSize === "number"
+                      ? String(currentFontSize)
+                      : "",
+                  );
+                }
+              }}
+            />
+          </label>
         </fieldset>
       );
     },

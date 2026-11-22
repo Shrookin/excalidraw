@@ -1,0 +1,50 @@
+.excalidraw-wysiwyg-toolbar {
+  position: fixed;
+  z-index: var(--zIndex-wysiwyg);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid var(--default-border-color);
+  border-radius: 0.65rem;
+  background: var(--island-bg-color);
+  color: var(--text-primary-color);
+  box-shadow: 0 4px 18px #0005;
+  font-family: var(--ui-font);
+}
+
+.excalidraw-wysiwyg-toolbar[hidden] {
+  display: none;
+}
+
+.excalidraw-wysiwyg-toolbar__button,
+.excalidraw-wysiwyg-toolbar__size,
+.excalidraw-wysiwyg-toolbar__color {
+  height: 2rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: var(--button-gray-1);
+  color: inherit;
+}
+
+.excalidraw-wysiwyg-toolbar__button {
+  min-width: 2rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.excalidraw-wysiwyg-toolbar__button[aria-pressed="true"] {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast, #fff);
+}
+
+.excalidraw-wysiwyg-toolbar__size {
+  width: 4.25rem;
+  padding: 0 0.35rem;
+}
+
+.excalidraw-wysiwyg-toolbar__color {
+  width: 2.25rem;
+  padding: 0.2rem;
+}

@@ -227,6 +227,25 @@ body.excalidraw-cursor-resize * {
       }
     }
 
+    .font-size-number-input {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+
+      input {
+        width: 4.5rem;
+        height: var(--default-button-size);
+        border: 1px solid var(--default-border-color);
+        border-radius: 0.4rem;
+        background: var(--island-bg-color);
+        color: var(--text-primary-color);
+        padding: 0 0.4rem;
+      }
+    }
+
     fieldset {
       margin: 0;
       padding: 0;

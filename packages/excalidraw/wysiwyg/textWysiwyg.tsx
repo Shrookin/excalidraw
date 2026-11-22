@@ -42,6 +42,11 @@ import {
   getBoundTextElement,
 } from "@excalidraw/element";
 import { getTextWidth } from "@excalidraw/element";
+import {
+  getTextStyleRanges,
+  remapTextStyleRanges,
+  updateTextStyleRange,
+} from "@excalidraw/element";
 import { getLineHeightInPx } from "@excalidraw/element";
 import { getLineWidth } from "@excalidraw/element";
 import { normalizeText } from "@excalidraw/element";
@@ -82,6 +87,8 @@ import {
   actionZoomIn,
   actionZoomOut,
 } from "../actions/actionCanvas";
+
+import "./textWysiwyg.scss";
 
 import type { ParsedDataTranferList } from "../clipboard";
 
@@ -567,7 +574,13 @@ export const textWysiwyg = ({
         transform,
         textAlign,
         verticalAlign,
-        color: applyDarkModeFilter(
+        color: getTextStyleRanges(updatedTextElement).length
+          ? "transparent"
+          : applyDarkModeFilter(
+              updatedTextElement.strokeColor,
+              appState.theme === THEME.DARK,
+            ),
+        caretColor: applyDarkModeFilter(
           updatedTextElement.strokeColor,
           appState.theme === THEME.DARK,
         ),
@@ -605,6 +618,162 @@ export const textWysiwyg = ({
   };
 
   const editable = ownerDocument.createElement("textarea");
+  const formattingToolbar = ownerDocument.createElement("div");
+  formattingToolbar.className = "excalidraw-wysiwyg-toolbar";
+  formattingToolbar.hidden = true;
+  formattingToolbar.setAttribute("role", "toolbar");
+  formattingToolbar.setAttribute("aria-label", "Text formatting");
+
+  let savedSelection = { start: 0, end: 0 };
+  const makeToolbarButton = (text: string, label: string) => {
+    const button = ownerDocument.createElement("button");
+    button.type = "button";
+    button.textContent = text;
+    button.title = label;
+    button.setAttribute("aria-label", label);
+    button.className = "excalidraw-wysiwyg-toolbar__button";
+    return button;
+  };
+  const boldButton = makeToolbarButton("B", "Bold");
+  const italicButton = makeToolbarButton("I", "Italic");
+  boldButton.style.fontWeight = "bold";
+  italicButton.style.fontStyle = "italic";
+
+  const fontSizeInput = ownerDocument.createElement("input");
+  fontSizeInput.type = "number";
+  fontSizeInput.min = "4";
+  fontSizeInput.max = "512";
+  fontSizeInput.step = "1";
+  fontSizeInput.title = "Font size";
+  fontSizeInput.setAttribute("aria-label", "Font size");
+  fontSizeInput.className = "excalidraw-wysiwyg-toolbar__size";
+
+  const colorInput = ownerDocument.createElement("input");
+  colorInput.type = "color";
+  colorInput.title = "Text color";
+  colorInput.setAttribute("aria-label", "Text color");
+  colorInput.className = "excalidraw-wysiwyg-toolbar__color";
+  formattingToolbar.append(boldButton, italicButton, fontSizeInput, colorInput);
+
+  const getSelectedStyleValue = (
+    property: "bold" | "italic" | "fontSize" | "color",
+  ) => {
+    const latestElement = app.scene.getElement<ExcalidrawTextElement>(
+      element.id,
+    );
+    if (!latestElement || latestElement.isDeleted) {
+      return undefined;
+    }
+    const ranges = getTextStyleRanges(latestElement).filter(
+      (range) =>
+        range.start < savedSelection.end && range.end > savedSelection.start,
+    );
+    if (!ranges.length) {
+      return undefined;
+    }
+    const values = ranges.map((range) => range[property]);
+    return values.every((value) => value === values[0]) ? values[0] : undefined;
+  };
+
+  const updateFormattingToolbar = () => {
+    if (isDestroyed) {
+      return;
+    }
+    const start = editable.selectionStart;
+    const end = editable.selectionEnd;
+    savedSelection = { start: Math.min(start, end), end: Math.max(start, end) };
+    formattingToolbar.hidden = savedSelection.end <= savedSelection.start;
+    if (formattingToolbar.hidden) {
+      return;
+    }
+    boldButton.setAttribute(
+      "aria-pressed",
+      String(getSelectedStyleValue("bold") === true),
+    );
+    italicButton.setAttribute(
+      "aria-pressed",
+      String(getSelectedStyleValue("italic") === true),
+    );
+    fontSizeInput.value = String(
+      getSelectedStyleValue("fontSize") ?? element.fontSize,
+    );
+    const color = getSelectedStyleValue("color") ?? element.strokeColor;
+    if (typeof color === "string" && /^#[\da-f]{6}$/i.test(color)) {
+      colorInput.value = color;
+    }
+    const bounds = editable.getBoundingClientRect();
+    formattingToolbar.style.left = `${Math.max(8, bounds.left)}px`;
+    formattingToolbar.style.top = `${Math.max(8, bounds.top - 44)}px`;
+  };
+
+  const applyFormatting = (
+    property: "bold" | "italic" | "fontSize" | "color",
+    value: boolean | number | string | undefined,
+  ) => {
+    const latestElement = app.scene.getElement<ExcalidrawTextElement>(
+      element.id,
+    );
+    if (
+      !latestElement ||
+      latestElement.isDeleted ||
+      savedSelection.end <= savedSelection.start
+    ) {
+      return;
+    }
+    const nextRanges = updateTextStyleRange(
+      getTextStyleRanges(latestElement),
+      savedSelection.start,
+      savedSelection.end,
+      property,
+      value,
+    );
+    app.scene.mutateElement(latestElement, {
+      customData: {
+        ...latestElement.customData,
+        textStyleRanges: nextRanges,
+      },
+    });
+    redrawTextBoundingBox(
+      latestElement,
+      getContainerElement(latestElement, app.scene.getNonDeletedElementsMap()),
+      app.scene,
+      app.renderEnvironment,
+    );
+    editable.onblur = handleBlur;
+    editable.focus({ preventScroll: true });
+    editable.setSelectionRange(savedSelection.start, savedSelection.end);
+    updateFormattingToolbar();
+  };
+
+  boldButton.onclick = () =>
+    applyFormatting(
+      "bold",
+      getSelectedStyleValue("bold") === true ? undefined : true,
+    );
+  italicButton.onclick = () =>
+    applyFormatting(
+      "italic",
+      getSelectedStyleValue("italic") === true ? undefined : true,
+    );
+  fontSizeInput.onchange = () => {
+    const value = Number(fontSizeInput.value);
+    if (Number.isFinite(value)) {
+      applyFormatting(
+        "fontSize",
+        Math.max(4, Math.min(512, Math.round(value))),
+      );
+    }
+  };
+  colorInput.onchange = () => applyFormatting("color", colorInput.value);
+
+  formattingToolbar.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+    temporarilyDisableSubmit();
+  });
+  editable.addEventListener("select", updateFormattingToolbar);
+  editable.addEventListener("keyup", updateFormattingToolbar);
+  editable.addEventListener("mouseup", updateFormattingToolbar);
+  ownerDocument.addEventListener("selectionchange", updateFormattingToolbar);
 
   editable.dir = "auto";
   editable.tabIndex = 0;
@@ -954,7 +1123,28 @@ export const textWysiwyg = ({
         editable.selectionStart = selectionStart;
         editable.selectionEnd = selectionStart;
       }
+      const latestElement = app.scene.getElement<ExcalidrawTextElement>(
+        element.id,
+      );
+      if (
+        latestElement &&
+        !latestElement.isDeleted &&
+        getTextStyleRanges(latestElement).length
+      ) {
+        const nextRanges = remapTextStyleRanges(
+          getTextStyleRanges(latestElement),
+          latestElement.originalText,
+          editable.value,
+        );
+        app.scene.mutateElement(latestElement, {
+          customData: {
+            ...latestElement.customData,
+            textStyleRanges: nextRanges,
+          },
+        });
+      }
       onChange(editable.value);
+      updateFormattingToolbar();
       // once the update, and any scroll it made (see
       // AppText.handleTextWysiwyg), is in the app's state
       queueMicrotask(followCaretFromUnderPanels);
@@ -1257,6 +1447,10 @@ export const textWysiwyg = ({
     ownerWindow.removeEventListener("pointerup", bindBlurEvent);
     ownerWindow.removeEventListener("blur", onWindowBlur);
     ownerWindow.removeEventListener("beforeunload", handleSubmit);
+    ownerDocument.removeEventListener(
+      "selectionchange",
+      updateFormattingToolbar,
+    );
     unbindUpdate();
     unsubOnChange();
     unbindOnScroll();
@@ -1265,6 +1459,7 @@ export const textWysiwyg = ({
     editorBox?.style.removeProperty("right");
 
     editable.remove();
+    formattingToolbar.remove();
   };
 
   const bindBlurEvent = (event?: MouseEvent) => {
@@ -1282,6 +1477,10 @@ export const textWysiwyg = ({
       (target instanceof ownerWindow.HTMLElement ||
         target instanceof ownerWindow.SVGElement) &&
       !!(target as Element).closest(".properties-content");
+    const isFormattingToolbar =
+      (target instanceof ownerWindow.HTMLElement ||
+        target instanceof ownerWindow.SVGElement) &&
+      !!(target as Element).closest(".excalidraw-wysiwyg-toolbar");
     const inShapeActionsMenu =
       (target instanceof ownerWindow.HTMLElement ||
         target instanceof ownerWindow.SVGElement) &&
@@ -1291,7 +1490,12 @@ export const textWysiwyg = ({
     ownerWindow.setTimeout(() => {
       // If we interacted within shape actions menu or its popovers/triggers,
       // keep submit disabled and don't steal focus back to textarea.
-      if (inShapeActionsMenu || isPropertiesTrigger || isPropertiesContent) {
+      if (
+        inShapeActionsMenu ||
+        isPropertiesTrigger ||
+        isPropertiesContent ||
+        isFormattingToolbar
+      ) {
         return;
       }
 
@@ -1551,6 +1755,8 @@ export const textWysiwyg = ({
   });
   ownerWindow.addEventListener("beforeunload", handleSubmit);
   editorBox!.appendChild(editable);
+  editorBox!.appendChild(formattingToolbar);
+  updateFormattingToolbar();
 
   return handleSubmit;
 };

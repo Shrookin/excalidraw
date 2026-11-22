@@ -59,6 +59,7 @@ import {
   getBoundTextMaxWidth,
 } from "./textElement";
 import { getLineHeightInPx } from "./textMeasurements";
+import { getTextStyleForDisplay, type TextStyle } from "./textStyles";
 import {
   isTextElement,
   isLinearElement,
@@ -703,12 +704,71 @@ const drawElementOnCanvas = (
             lineHeightPx,
           );
 
-          for (let index = 0; index < lines.length; index++) {
-            context.fillText(
-              lines[index],
-              horizontalOffset,
-              index * lineHeightPx + verticalOffset,
-            );
+          const styleByCharacter = getTextStyleForDisplay(
+            element,
+            element.text,
+          );
+          if (styleByCharacter.some(Boolean)) {
+            context.textAlign = "left";
+            let characterOffset = 0;
+            for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+              const line = lines[lineIndex];
+              const runs: { text: string; style: TextStyle | null }[] = [];
+              for (let offset = 0; offset < line.length; offset++) {
+                const character = line[offset];
+                const style = styleByCharacter[characterOffset + offset];
+                const previous = runs[runs.length - 1];
+                if (previous && previous.style === style) {
+                  previous.text += character;
+                } else {
+                  runs.push({ text: character, style });
+                }
+              }
+              const getRunFont = (style: TextStyle | null) => {
+                const fontSize = style?.fontSize ?? element.fontSize;
+                const modifiers = [
+                  style?.italic ? "italic" : "",
+                  style?.bold ? "bold" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+                return `${
+                  modifiers ? `${modifiers} ` : ""
+                }${fontSize}px ${context.font.replace(/^.*?px\s*/, "")}`;
+              };
+              const lineWidth = runs.reduce((width, run) => {
+                context.font = getRunFont(run.style);
+                return width + context.measureText(run.text).width;
+              }, 0);
+              let runX =
+                element.textAlign === "center"
+                  ? (element.width - lineWidth) / 2
+                  : element.textAlign === "right"
+                  ? element.width - lineWidth
+                  : 0;
+              for (const run of runs) {
+                context.font = getRunFont(run.style);
+                context.fillStyle = applyDarkModeFilter(
+                  run.style?.color ?? element.strokeColor,
+                  renderConfig.theme === THEME.DARK,
+                );
+                context.fillText(
+                  run.text,
+                  runX,
+                  lineIndex * lineHeightPx + verticalOffset,
+                );
+                runX += context.measureText(run.text).width;
+              }
+              characterOffset += line.length + 1;
+            }
+          } else {
+            for (let index = 0; index < lines.length; index++) {
+              context.fillText(
+                lines[index],
+                horizontalOffset,
+                index * lineHeightPx + verticalOffset,
+              );
+            }
           }
         });
         if (shouldTemporarilyAttach) {

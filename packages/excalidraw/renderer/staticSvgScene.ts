@@ -45,6 +45,7 @@ import {
 } from "@excalidraw/element";
 
 import { getElementAbsoluteCoords } from "@excalidraw/element";
+import { getTextStyleForDisplay } from "@excalidraw/element";
 
 import type {
   ExcalidrawElement,
@@ -810,6 +811,7 @@ const renderElementToSvg = (
           lineHeightPx,
         );
         const direction = isRTL(element.text) ? "rtl" : "ltr";
+        const styleByCharacter = getTextStyleForDisplay(element, element.text);
         const textAnchor =
           element.textAlign === "center"
             ? "middle"
@@ -818,7 +820,49 @@ const renderElementToSvg = (
             : "start";
         for (let i = 0; i < lines.length; i++) {
           const text = svgRoot.ownerDocument.createElementNS(SVG_NS, "text");
-          text.textContent = lines[i];
+          const line = lines[i];
+          if (styleByCharacter.some(Boolean)) {
+            for (let offset = 0; offset < line.length; ) {
+              const character = String.fromCodePoint(line.codePointAt(offset)!);
+              const style = styleByCharacter[offset];
+              let runEnd = offset + character.length;
+              while (
+                runEnd < line.length &&
+                styleByCharacter[runEnd] === style
+              ) {
+                runEnd += String.fromCodePoint(
+                  line.codePointAt(runEnd)!,
+                ).length;
+              }
+              const run = svgRoot.ownerDocument.createElementNS(
+                SVG_NS,
+                "tspan",
+              );
+              run.textContent = line.slice(offset, runEnd);
+              if (style?.bold) {
+                run.setAttribute("font-weight", "bold");
+              }
+              if (style?.italic) {
+                run.setAttribute("font-style", "italic");
+              }
+              if (style?.fontSize) {
+                run.setAttribute("font-size", `${style.fontSize}px`);
+              }
+              if (style?.color) {
+                run.setAttribute(
+                  "fill",
+                  applyDarkModeFilter(
+                    style.color,
+                    renderConfig.theme === THEME.DARK,
+                  ),
+                );
+              }
+              text.appendChild(run);
+              offset = runEnd;
+            }
+          } else {
+            text.textContent = line;
+          }
           text.setAttribute("x", `${horizontalOffset}`);
           text.setAttribute("y", `${i * lineHeightPx + verticalOffset}`);
           text.setAttribute("font-family", getFontFamilyString(element));

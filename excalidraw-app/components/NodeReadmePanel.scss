@@ -22,8 +22,7 @@
   filter: url("#node-readme-goo");
 }
 
-.node-readme-control__goo::before,
-.node-readme-control__blob {
+.node-readme-control__goo::before {
   position: absolute;
   display: block;
   border-radius: 1rem;
@@ -35,25 +34,14 @@
   inset: 3rem 0 0;
   transform: scale(0.14);
   transform-origin: top right;
-  transition: transform 560ms cubic-bezier(0.22, 1.25, 0.45, 1);
-}
-
-.node-readme-control__blob {
-  top: 0;
-  right: 0;
-  width: 7rem;
-  height: 2.5rem;
-  transition: width 420ms cubic-bezier(0.22, 1.25, 0.45, 1),
-    height 420ms cubic-bezier(0.22, 1.25, 0.45, 1);
+  opacity: 0;
+  transition: transform 560ms cubic-bezier(0.22, 1.25, 0.45, 1),
+    opacity 180ms ease;
 }
 
 .node-readme-control[data-open="true"] .node-readme-control__goo::before {
   transform: scale(1);
-}
-
-.node-readme-control[data-open="true"] .node-readme-control__blob {
-  width: 7rem;
-  height: 2.5rem;
+  opacity: 1;
 }
 
 .node-readme-trigger {
@@ -358,7 +346,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .node-readme-control__goo::before,
-  .node-readme-control__blob,
   .node-readme-panel,
   .node-readme-trigger {
     transition-duration: 0.01ms;
