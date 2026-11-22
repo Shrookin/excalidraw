@@ -59,6 +59,6 @@ SpacetimeDB tables are private by default; clients read exposed data through pub
 
 ## Recommendation
 
-First try the Google Docs experience on the current Excalidraw backend: create a collaboration document once, retain a stable edit link, and confirm that a second browser can reopen it after the first browser is fully closed. Add a document list or account-backed ownership only if users need to recover documents when the link is lost. This may satisfy the core request without a backend migration.
+This fork starts the Google Docs-style flow on Excalidraw's current backend: the share dialog calls the operation “Create edit link,” labels the result as a shared drawing, and explains that the same link can be reopened after leaving. A document list or account-backed ownership could be added later if users need to recover links they lose.
 
-Consider a SpacetimeDB prototype only if we want its unified state/subscription model or need to own the backend. Keep Excalidraw's scene reconciliation and ephemeral cursor/presence behavior explicit in that design. The database's durable transactions alone do not resolve simultaneous edits.
+The next acceptance check is to open the link in a second browser after closing the first browser, then make another edit and confirm it saves and syncs. Consider a SpacetimeDB prototype only if we want its unified state/subscription model or need to own the backend. Keep Excalidraw's scene reconciliation and ephemeral cursor/presence behavior explicit in that design. The database's durable transactions alone do not resolve simultaneous edits.

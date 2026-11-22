@@ -105,8 +105,12 @@ const ActiveRoomDialog = ({
   return (
     <>
       <h3 className="ShareDialog__active__header">
-        {t("labels.liveCollaboration").replace(/\./g, "")}
+        {t("roomDialog.documentTitle")}
       </h3>
+      <div className="ShareDialog__active__description">
+        <p>{t("roomDialog.desc_inProgressIntro")}</p>
+        <p>{t("roomDialog.desc_shareLink")}</p>
+      </div>
       <TextField
         defaultValue={collabAPI.getUsername()}
         placeholder="Your name"
@@ -186,7 +190,7 @@ const ShareDialogPicker = (props: ShareDialogProps) => {
   const startCollabJSX = collabAPI ? (
     <>
       <div className="ShareDialog__picker__header">
-        {t("labels.liveCollaboration").replace(/\./g, "")}
+        {t("roomDialog.documentTitle")}
       </div>
 
       <div className="ShareDialog__picker__description">

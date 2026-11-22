@@ -22,6 +22,8 @@
 
 This fork adds an optional Markdown README panel for individual drawing elements. Select an element and use the `README` control; its notes are saved in the element data and travel with the drawing. A preliminary design for durable, asynchronous collaboration is in [`dev-docs/persistent-collaboration-spacetimedb.md`](dev-docs/persistent-collaboration-spacetimedb.md).
 
+Collaborative drawings use a reusable edit link. Create it once and share the same link; edits are saved automatically, and collaborators can reopen it later even when nobody else is online. People editing at the same time still see each other's changes live.
+
 <br />
 <p align="center">
   <a href="https://github.com/excalidraw/excalidraw/blob/master/LICENSE">
