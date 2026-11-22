@@ -49,23 +49,6 @@ export const NodeReadmePanel = ({
 
   return (
     <div className="node-readme-control" data-open={open}>
-      <svg className="node-readme-control__filters" aria-hidden="true">
-        <defs>
-          <filter id="node-readme-goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
-            <feColorMatrix
-              in="blur"
-              mode="matrix"
-              values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 22 -14"
-              result="goo"
-            />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-          </filter>
-        </defs>
-      </svg>
-
-      <div className="node-readme-control__goo" aria-hidden="true" />
-
       {selectedElement && (
         <button
           type="button"

@@ -2,46 +2,7 @@
   position: relative;
   z-index: 1000;
   margin-right: 0.5rem;
-}
-
-.node-readme-control__filters {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-.node-readme-control__goo {
-  position: absolute;
-  z-index: 0;
-  top: 0;
-  right: 0;
-  width: min(24rem, calc(100vw - 2rem));
-  height: min(34rem, calc(100vh - 6rem));
-  pointer-events: none;
-  filter: url("#node-readme-goo");
-}
-
-.node-readme-control__goo::before {
-  position: absolute;
-  display: block;
-  border-radius: 1rem;
-  background: var(--island-bg-color);
-  content: "";
-}
-
-.node-readme-control__goo::before {
-  inset: 3rem 0 0;
-  transform: scale(0.14);
-  transform-origin: top right;
-  opacity: 0;
-  transition: transform 560ms cubic-bezier(0.22, 1.25, 0.45, 1),
-    opacity 180ms ease;
-}
-
-.node-readme-control[data-open="true"] .node-readme-control__goo::before {
-  transform: scale(1);
-  opacity: 1;
+  order: 10;
 }
 
 .node-readme-trigger {
@@ -345,7 +306,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .node-readme-control__goo::before,
   .node-readme-panel,
   .node-readme-trigger {
     transition-duration: 0.01ms;
