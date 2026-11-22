@@ -149,6 +149,7 @@ import "./index.scss";
 
 import { ExcalidrawPlusPromoBanner } from "./components/ExcalidrawPlusPromoBanner";
 import { AppSidebar } from "./components/AppSidebar";
+import { NodeReadmePanel } from "./components/NodeReadmePanel";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -377,6 +378,10 @@ const ExcalidrawWrapper = () => {
   const excalidrawAPI = useExcalidrawAPI();
 
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(
+    null,
+  );
+  const [readmeTargetId, setReadmeTargetId] = useState<string | null>(null);
   const isCollabDisabled = isRunningInIframe();
 
   const { editorTheme, appTheme, setAppTheme } = useHandleAppTheme();
@@ -725,6 +730,18 @@ const ExcalidrawWrapper = () => {
     appState: AppState,
     files: BinaryFiles,
   ) => {
+    const selectedIds = Object.keys(appState.selectedElementIds).filter(
+      (id) => appState.selectedElementIds[id],
+    );
+    const nextSelectedElementId =
+      selectedIds.length === 1 ? selectedIds[0] : null;
+    setSelectedElementId((current) =>
+      current === nextSelectedElementId ? current : nextSelectedElementId,
+    );
+    if (readmeTargetId && readmeTargetId !== nextSelectedElementId) {
+      setReadmeTargetId(null);
+    }
+
     if (collabAPI?.isCollaborating()) {
       collabAPI.syncElements(elements);
     }
@@ -826,6 +843,71 @@ const ExcalidrawWrapper = () => {
         appState={appState}
         elements={elements}
       />
+    );
+  };
+
+  const renderReadmeControls = () => {
+    const selectedElement = selectedElementId
+      ? excalidrawAPI
+          ?.getSceneElements()
+          .find((element) => element.id === selectedElementId)
+      : null;
+    const readmeElement = readmeTargetId
+      ? excalidrawAPI
+          ?.getSceneElements()
+          .find((element) => element.id === readmeTargetId)
+      : null;
+    const boundText = readmeElement
+      ? excalidrawAPI
+          ?.getSceneElements()
+          .find(
+            (element) =>
+              element.type === "text" &&
+              "containerId" in element &&
+              element.containerId === readmeElement.id,
+          )
+      : null;
+    const readmeLabel =
+      (boundText && "text" in boundText && boundText.text.trim()) ||
+      readmeElement?.type ||
+      "Element";
+
+    return (
+      <>
+        {selectedElement && (
+          <button
+            type="button"
+            className="excalidraw-button node-readme-trigger"
+            aria-label="Open element README"
+            title="Open element README"
+            onClick={() => setReadmeTargetId(selectedElement.id)}
+          >
+            README
+          </button>
+        )}
+        {readmeElement && excalidrawAPI && (
+          <NodeReadmePanel
+            element={readmeElement}
+            label={readmeLabel}
+            onClose={() => setReadmeTargetId(null)}
+            onChange={(markdown) => {
+              const elements = excalidrawAPI
+                .getSceneElementsIncludingDeleted()
+                .map((element) =>
+                  element.id === readmeElement.id
+                    ? newElementWith(element, {
+                        customData: {
+                          ...element.customData,
+                          nodeReadme: markdown,
+                        },
+                      })
+                    : element,
+                );
+              excalidrawAPI.updateScene({ elements });
+            }}
+          />
+        )}
+      </>
     );
   };
 
@@ -1009,12 +1091,25 @@ const ExcalidrawWrapper = () => {
         theme={editorTheme}
         onThemeChange={setAppTheme}
         renderTopRightUI={(isMobile) => {
-          if (isMobile || !collabAPI || !isCollabAvailable) {
-            return null;
+          if (isMobile) {
+            return (
+              <div className="excalidraw-ui-top-right">
+                {renderReadmeControls()}
+              </div>
+            );
+          }
+
+          if (!collabAPI || !isCollabAvailable) {
+            return (
+              <div className="excalidraw-ui-top-right">
+                {renderReadmeControls()}
+              </div>
+            );
           }
 
           return (
             <div className="excalidraw-ui-top-right">
+              {renderReadmeControls()}
               {excalidrawAPI?.getEditorInterface().formFactor === "desktop" && (
                 <ExcalidrawPlusPromoBanner
                   isSignedIn={isExcalidrawPlusSignedUser}

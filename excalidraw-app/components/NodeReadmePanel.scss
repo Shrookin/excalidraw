@@ -1,0 +1,232 @@
+.node-readme-trigger {
+  margin-right: 0.5rem;
+}
+
+.node-readme-panel {
+  position: fixed;
+  z-index: 1000;
+  top: 4.5rem;
+  right: 1rem;
+  display: flex;
+  width: min(24rem, calc(100vw - 2rem));
+  height: min(34rem, calc(100vh - 6rem));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--default-border-color);
+  border-radius: 1rem;
+  background: var(--island-bg-color);
+  color: var(--text-primary-color);
+  box-shadow: 0 12px 40px #0003;
+  text-align: left;
+}
+
+.node-readme-panel__header,
+.node-readme-panel__footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+}
+
+.node-readme-panel__header {
+  min-height: 4.5rem;
+  border-bottom: 1px solid var(--default-border-color);
+}
+
+.node-readme-panel__title {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.node-readme-panel__title strong,
+.node-readme-panel__title code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-readme-panel__title strong {
+  font-size: 0.9rem;
+}
+
+.node-readme-panel__title code,
+.node-readme-panel__eyebrow {
+  color: var(--text-muted-color);
+  font-size: 0.7rem;
+}
+
+.node-readme-panel__eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.node-readme-panel button {
+  cursor: pointer;
+}
+
+.node-readme-panel__close {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+}
+
+.node-readme-panel__close:hover,
+.node-readme-panel__empty button:hover {
+  background: var(--button-hover-bg);
+}
+
+.node-readme-panel__body {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.node-readme-panel__body textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 15rem;
+  resize: none;
+  border: 1px solid var(--default-border-color);
+  border-radius: 0.5rem;
+  background: var(--popup-bg-color);
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding: 0.75rem;
+}
+
+.node-readme-panel__empty {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.node-readme-panel__empty p {
+  max-width: 18rem;
+  margin: 0;
+  color: var(--text-muted-color);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.node-readme-panel__empty button {
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--color-primary);
+  padding: 0.5rem 0.75rem;
+}
+
+.node-readme-panel__footer {
+  position: relative;
+  min-height: 3.75rem;
+  justify-content: center;
+  border-top: 1px solid var(--default-border-color);
+}
+
+.node-readme-panel__tabs {
+  display: inline-flex;
+  gap: 0.2rem;
+  border-radius: 999px;
+  background: var(--button-gray-1);
+  padding: 0.2rem;
+}
+
+.node-readme-panel__tabs button {
+  min-width: 5.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted-color);
+  padding: 0.4rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+.node-readme-panel__tabs button.is-active {
+  background: var(--island-bg-color);
+  color: var(--text-primary-color);
+  box-shadow: 0 1px 3px #0002;
+}
+
+.node-readme-panel__saved {
+  position: absolute;
+  right: 0.75rem;
+  color: var(--text-muted-color);
+  font-size: 0.65rem;
+}
+
+.node-readme-markdown {
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.node-readme-markdown h1,
+.node-readme-markdown h2,
+.node-readme-markdown h3 {
+  margin: 1rem 0 0.5rem;
+  line-height: 1.35;
+}
+
+.node-readme-markdown h1 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+.node-readme-markdown h2 {
+  font-size: 1.05rem;
+}
+.node-readme-markdown h3 {
+  font-size: 0.925rem;
+}
+.node-readme-markdown p,
+.node-readme-markdown ul,
+.node-readme-markdown ol {
+  margin: 0.65rem 0;
+}
+.node-readme-markdown ul,
+.node-readme-markdown ol {
+  padding-left: 1.35rem;
+}
+.node-readme-markdown ul {
+  list-style: disc;
+}
+.node-readme-markdown ol {
+  list-style: decimal;
+}
+.node-readme-markdown a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.node-readme-markdown code {
+  border-radius: 0.25rem;
+  background: var(--button-gray-1);
+  padding: 0.1rem 0.3rem;
+  font-family: var(--font-mono);
+}
+.node-readme-markdown pre {
+  overflow: auto;
+  border: 1px solid var(--default-border-color);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+.node-readme-markdown blockquote {
+  border-left: 2px solid var(--default-border-color);
+  margin: 0.75rem 0;
+  padding-left: 0.75rem;
+  color: var(--text-muted-color);
+}

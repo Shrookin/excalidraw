@@ -20,6 +20,8 @@
   </h2>
 </div>
 
+This fork adds an optional Markdown README panel for individual drawing elements. Select an element and use the `README` control; its notes are saved in the element data and travel with the drawing. A preliminary design for durable, asynchronous collaboration is in [`dev-docs/persistent-collaboration-spacetimedb.md`](dev-docs/persistent-collaboration-spacetimedb.md).
+
 <br />
 <p align="center">
   <a href="https://github.com/excalidraw/excalidraw/blob/master/LICENSE">
